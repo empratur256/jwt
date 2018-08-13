@@ -20,14 +20,13 @@ class UserController extends Controller
 {
 private function jwt(User $user)
     {
-        $user->logout = 0;
-        $user->save();
         $payload = [
-            'iss' => "lumen-jwt",
-            'sub' => $user->id,
-            'iat' => time(),
-            'exp' => time() + config('jwt.app.ttl')
-        ];
+                   'iss'    => "lumen-jwt",                     // Issuer of the token
+                   'sub'    => $user->id,                      // Subject of the token
+                   'logout' => date('Y-m-d H:i:s'),
+                   'iat'    => time(),                        // Time when JWT was issued.
+                   'exp'    => time() + config('jwt.app.ttl')// Expiration time
+               ];
         return JWT::encode($payload, config('jwt.app.secret'));
     }
 
@@ -61,9 +60,9 @@ public function authenticate(Request $request)
     
     
     public function logout(Request $request){
-            $user = User::find($request->auth);
-            $user->logout = 1;
-            $user->save();
+           $user = User::find($request->auth->id);
+                   $user->logout = date('Y-m-d H:i:s');
+                   $user->save();
             return "logout";
         }
   }
@@ -83,6 +82,11 @@ public function authenticate(Request $request)
     }
 
 ?>
+```
+.env
+-------
+```
+JWT_SECRET=34u9fh934yjc8ru20cmr87ty368
 ```
 
 terminal
@@ -132,8 +136,6 @@ For laravel
 protected $middlewareGroups = [
 
         'jwt' => [\empratur256\JWT\Middleware\JWTMiddleware::class],
-
-      
     ];
 ?>
 ```

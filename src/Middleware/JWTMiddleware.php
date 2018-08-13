@@ -44,7 +44,7 @@ class JWTMiddleware
         }
           $auth = User::find($credentials->sub);
 
-        if($auth->logout == 0) {
+        if($auth->logout >= $credentials->logout) {
             // Unauthorized response if token not there
             return response()->json([
                 'error' => 'This Token Logout.'
