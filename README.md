@@ -1,8 +1,3 @@
-[![Build Status](https://travis-ci.org/empratur256/php-jwt.png?branch=master)](https://travis-ci.org/empratur256/php-jwt)
-[![Latest Stable Version](https://poser.pugx.org/empratur256/php-jwt/v/stable)](https://packagist.org/packages/empratur256/php-jwt)
-[![Total Downloads](https://poser.pugx.org/empratur256/php-jwt/downloads)](https://packagist.org/packages/empratur256/php-jwt)
-[![License](https://poser.pugx.org/empratur256/php-jwt/license)](https://packagist.org/packages/empratur256/php-jwt)
-
 PHP-JWT
 =======
 A simple library to encode and decode JSON Web Tokens (JWT) in PHP, conforming to [RFC 7519](https://tools.ietf.org/html/rfc7519).
@@ -21,45 +16,145 @@ Example
 ```php
 <?php
 use \empratur256\JWT\JWT;
+class UserController extends Controller
+{
+private function jwt(User $user)
+    {
+        $user->logout = 0;
+        $user->save();
+        $payload = [
+            'iss' => "lumen-jwt",
+            'sub' => $user->id,
+            'iat' => time(),
+            'exp' => time() + config('jwt.app.ttl')
+        ];
+        return JWT::encode($payload, config('jwt.app.secret'));
+    }
 
-$key = "example_key";
-$token = array(
-    "iss" => "http://example.org",
-    "aud" => "http://example.com",
-    "iat" => 1356999524,
-    "nbf" => 1357000000
-);
 
-/**
- * IMPORTANT:
- * You must specify supported algorithms for your application. See
- * https://tools.ietf.org/html/draft-ietf-jose-json-web-algorithms-40
- * for a list of spec-compliant algorithms.
- */
-$jwt = JWT::encode($token, $key);
-$decoded = JWT::decode($jwt, $key, array('HS256'));
+public function authenticate(Request $request)
+    {
 
-print_r($decoded);
+        $this->validate($request, [
+            'email'    => 'required|email',
+            'password' => 'required'
+        ]);
 
-/*
- NOTE: This will now be an object instead of an associative array. To get
- an associative array, you will need to cast it as such:
-*/
+        // Find the user by email
+        $user = User::where('email', $request->input('email'))->first();
+        if (!$user) {
+            return response()->json([
+                'error' => 'Email does not exist.'
+            ], 400);
+        }
+        // Verify the password and generate the token
+        if (Hash::check($request->input('password'), $user->password)) {
+            return response()->json([
+                'token' => $this->jwt($user)
+            ], 200);
+        }
+        // Bad Request response
+        return response()->json([
+            'error' => 'Email or password is wrong.'
+        ], 400);
+    }
+    
+    
+    public function logout(Request $request){
+            $user = User::find($request->auth);
+            $user->logout = 1;
+            $user->save();
+            return "logout";
+        }
+  }
+?>
+```
 
-$decoded_array = (array) $decoded;
 
-/**
- * You can add a leeway to account for when there is a clock skew times between
- * the signing and verifying servers. It is recommended that this leeway should
- * not be bigger than a few minutes.
- *
- * Source: http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#nbfDef
- */
-JWT::$leeway = 60; // $leeway in seconds
-$decoded = JWT::decode($jwt, $key, array('HS256'));
+/app/Console/commands/Kernel.php
+-------
+```php
+<?php
+
+   protected function schedule(Schedule $schedule)
+    {
+        MigrationCommand::class;
+      
+    }
 
 ?>
 ```
+
+terminal
+-------
+```
+php artisan JWT:migration
+```
+
+
+/app/User.php
+-------
+```php 
+<?php
+
+   protected $fillable = [
+           'name', 'email','logout'
+       ];
+
+?>
+```
+
+For Lumen
+
+/bootstrap/app.php
+-------
+```php
+<?php
+
+$app->routeMiddleware([
+    'jwt.auth'   => \empratur256\JWT\Middleware\JWTMiddleware::class,
+]);
+
+
+
+$app->register( empratur256\JWT\JWTServiceProvider::class);
+
+
+?>
+```
+
+For laravel
+
+/app/http/Kernel.php
+-------
+```php
+<?php
+protected $middlewareGroups = [
+
+        'jwt' => [\empratur256\JWT\Middleware\JWTMiddleware::class],
+
+      
+    ];
+?>
+```
+
+/config/app.php
+-------
+```php
+<?php
+
+      //Provider
+      
+       empratur256\JWT\JWTServiceProvider::class,
+       
+       //aliases
+       
+        'JWT' => empratur256\JWT\Facades\JWT::class, 
+    ];
+
+```
+
+
 Example with RS256 (openssl)
 ----------------------------
 ```php
@@ -140,14 +235,14 @@ Changelog
   [@chinedufn](https://github.com/chinedufn), and [@bshaffer](https://github.com/bshaffer)!
 
 #### 4.0.0 / 2016-07-17
-- Add support for late static binding. See [#88](https://github.com/firebase/php-jwt/pull/88) for details. Thanks to [@chappy84](https://github.com/chappy84)!
-- Use static `$timestamp` instead of `time()` to improve unit testing. See [#93](https://github.com/firebase/php-jwt/pull/93) for details. Thanks to [@josephmcdermott](https://github.com/josephmcdermott)!
-- Fixes to exceptions classes. See [#81](https://github.com/firebase/php-jwt/pull/81) for details. Thanks to [@Maks3w](https://github.com/Maks3w)!
-- Fixes to PHPDoc. See [#76](https://github.com/firebase/php-jwt/pull/76) for details. Thanks to [@akeeman](https://github.com/akeeman)!
+- Add support for late static binding. See [#88](https://github.com/empratur256/php-jwt/pull/88) for details. Thanks to [@chappy84](https://github.com/chappy84)!
+- Use static `$timestamp` instead of `time()` to improve unit testing. See [#93](https://github.com/empratur256/php-jwt/pull/93) for details. Thanks to [@josephmcdermott](https://github.com/josephmcdermott)!
+- Fixes to exceptions classes. See [#81](https://github.com/empratur256/php-jwt/pull/81) for details. Thanks to [@Maks3w](https://github.com/Maks3w)!
+- Fixes to PHPDoc. See [#76](https://github.com/empratur256/php-jwt/pull/76) for details. Thanks to [@akeeman](https://github.com/akeeman)!
 
 #### 3.0.0 / 2015-07-22
 - Minimum PHP version updated from `5.2.0` to `5.3.0`.
-- Add `\Firebase\JWT` namespace. See
+- Add `\empratur256\JWT` namespace. See
 [#59](https://github.com/empratur256/php-jwt/pull/59) for details. Thanks to
 [@Dashron](https://github.com/Dashron)!
 - Require a non-empty key to decode and verify a JWT. See
