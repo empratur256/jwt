@@ -1,6 +1,6 @@
 {
     "name": "empratur256/php-jwt",
-    "description": "Forked empratur256/php-jwt that adds parsed payload in exceptions.",
+    "description": "Forked fierbase/php-jwt that adds parsed payload in exceptions.",
     "homepage": "https://github.com/ermpratur256/php-jwt",
     "authors": [
         {
