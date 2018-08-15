@@ -98,7 +98,7 @@ terminal
 php artisan JWT:migration
 
 
-php artisan JWT:migrate
+php artisan migrate
 ```
 
 
