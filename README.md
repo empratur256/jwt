@@ -2,6 +2,9 @@ PHP-JWT
 =======
 A simple library to encode and decode JSON Web Tokens (JWT) in PHP, conforming to [RFC 7519](https://tools.ietf.org/html/rfc7519).
 
+
+This package has the ability to log out and is shared with the Laravel and Lumens framework. With this package, a Macro service can be designed and used to provide authentication services among all Laravel and Lumens packages with a constant.
+
 Installation
 ------------
 
