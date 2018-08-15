@@ -5,6 +5,10 @@ A simple library to encode and decode JSON Web Tokens (JWT) in PHP, conforming t
 
 This package has the ability to log out and is shared with the Laravel and Lumens framework. With this package, a Macro service can be designed and used to provide authentication services among all Laravel and Lumens packages with a constant.
 
+
+Fork form  https://github.com/firebase/php-jwt
+
+
 Installation
 ------------
 
